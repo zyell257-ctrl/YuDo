@@ -93,7 +93,7 @@ function validateImageFile(file) {
     return null;
 }
 
-function compressImage(file, maxWidth = 1400, quality = 0.78) {
+function compressImage(file, maxWidth = 1000, quality = 0.62, outputType = 'image/webp') {
     return new Promise(resolve => {
         if (!file || !file.type.startsWith('image/')) {
             resolve(file);
@@ -108,15 +108,24 @@ function compressImage(file, maxWidth = 1400, quality = 0.78) {
             canvas.width = Math.round(image.width * scale);
             canvas.height = Math.round(image.height * scale);
             canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(blob => {
+            const makeFile = (blob, type) => {
                 URL.revokeObjectURL(objectUrl);
                 if (!blob) {
                     resolve(file);
                     return;
                 }
-                const ext = file.type === 'image/png' ? 'png' : (file.type === 'image/webp' ? 'webp' : 'jpg');
-                resolve(new File([blob], `compressed-${Date.now()}.${ext}`, { type: file.type }));
-            }, file.type, quality);
+                const ext = type === 'image/webp' ? 'webp' : 'jpg';
+                resolve(new File([blob], `compressed-${Date.now()}.${ext}`, { type }));
+            };
+
+            canvas.toBlob(blob => {
+                if (blob) {
+                    makeFile(blob, outputType);
+                    return;
+                }
+
+                canvas.toBlob(fallbackBlob => makeFile(fallbackBlob, 'image/jpeg'), 'image/jpeg', quality);
+            }, outputType, quality);
         };
         image.onerror = () => {
             URL.revokeObjectURL(objectUrl);

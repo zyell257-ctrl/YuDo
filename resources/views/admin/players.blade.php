@@ -173,7 +173,7 @@ async function savePlayer() {
     form.append('_token', csrfToken);
     if (id) form.append('_method', 'PUT');
     if (selectedPlayerPhoto) {
-        form.append('foto_profile', await compressImage(selectedPlayerPhoto, 900, 0.8));
+        form.append('foto_profile', await compressImage(selectedPlayerPhoto, 512, 0.68));
     }
 
     fetch(id ? `{{ url('/admin/pemain') }}/${id}` : '{{ route("admin.players.store") }}', {

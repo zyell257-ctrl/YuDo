@@ -376,7 +376,7 @@ async function handleMatchProofInput(matchId, input) {
         return;
     }
 
-    const compressed = await compressImage(file, 1400, 0.78);
+    const compressed = await compressImage(file, 1000, 0.62);
     const form = new FormData();
     form.append('bukti_foto_pertandingan', compressed);
     form.append('_token', csrfToken);
@@ -452,7 +452,7 @@ async function submitUploadPhoto() {
     const error = validateImageFile(input.files[0]);
     if (error) { showToast(error, 'error'); return; }
 
-    const compressed = await compressImage(input.files[0], 1400, 0.78);
+    const compressed = await compressImage(input.files[0], 1000, 0.62);
     const form = new FormData();
     form.append('foto', compressed);
     form.append('deskripsi', document.getElementById('foto-deskripsi').value);
