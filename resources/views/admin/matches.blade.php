@@ -195,7 +195,7 @@ function submitAddMatch() {
         return;
     }
 
-    fetch('{{ route("admin.matches.store") }}', {
+    fetch('/admin/pertandingan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
         body: JSON.stringify({ player_ids: [...selectedPlayers] }),
@@ -226,7 +226,7 @@ function changeScore(scoreId, field, delta) {
         const keinjek = parseInt(document.getElementById(`keinjek-${scoreId}`).textContent) || 0;
         const total   = parseInt(document.getElementById(`total-${scoreId}`).textContent) || 0;
 
-        fetch(`{{ url('/admin/pertandingan') }}/${scoreId}/skor`, {
+        fetch(`/admin/pertandingan/${scoreId}/skor`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
             body: JSON.stringify({ score_id: scoreId, skor_keinjek: keinjek, total_skor: total }),
@@ -240,7 +240,7 @@ function resetScore(scoreId) {
     document.getElementById(`keinjek-${scoreId}`).textContent = 0;
     document.getElementById(`total-${scoreId}`).textContent   = 0;
 
-    fetch(`{{ url('/admin/pertandingan') }}/${scoreId}/skor`, {
+    fetch(`/admin/pertandingan/${scoreId}/skor`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
         body: JSON.stringify({ score_id: scoreId, skor_keinjek: 0, total_skor: 0 }),
@@ -249,7 +249,7 @@ function resetScore(scoreId) {
 
 // ===== PILIH POSISI JUARA MANUAL =====
 function setMatchPosition(matchId, scoreId, posisi) {
-    fetch(`{{ url('/admin/pertandingan') }}/${matchId}/posisi`, {
+    fetch(`/admin/pertandingan/${matchId}/posisi`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
         body: JSON.stringify({ score_id: scoreId, posisi }),
@@ -306,7 +306,7 @@ async function finishMatch(matchId) {
     });
     if (!ok) return;
 
-    fetch(`{{ url('/admin/pertandingan') }}/${matchId}/selesai`, {
+    fetch(`/admin/pertandingan/${matchId}/selesai`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
     })
@@ -331,7 +331,7 @@ async function deleteMatch(matchId) {
     });
     if (!ok) return;
 
-    fetch(`{{ url('/admin/pertandingan') }}/${matchId}`, {
+    fetch(`/admin/pertandingan/${matchId}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': csrfToken },
     })
@@ -381,7 +381,7 @@ async function handleMatchProofInput(matchId, input) {
     form.append('bukti_foto_pertandingan', compressed);
     form.append('_token', csrfToken);
 
-    fetch(`{{ url('/admin/pertandingan') }}/${matchId}/bukti-foto`, {
+    fetch(`/admin/pertandingan/${matchId}/bukti-foto`, {
         method: 'POST',
         body: form,
     })
@@ -458,7 +458,7 @@ async function submitUploadPhoto() {
     form.append('deskripsi', document.getElementById('foto-deskripsi').value);
     form.append('_token', csrfToken);
 
-    fetch('{{ route("admin.matches.uploadPhoto") }}', { method: 'POST', body: form })
+    fetch('/admin/pertandingan/foto', { method: 'POST', body: form })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
@@ -474,7 +474,7 @@ async function submitUploadPhoto() {
 // ===== REALTIME POLLING (tiap 10 detik untuk viewer) =====
 @guest('admin')
 setInterval(() => {
-    fetch('{{ route("api.matches.today") }}')
+    fetch('/api/matches/today')
         .then(r => r.json())
         .then(data => {
             // Hanya update skor display jika ada perubahan

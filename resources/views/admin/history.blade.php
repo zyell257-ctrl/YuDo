@@ -145,7 +145,7 @@ async function loadHistory() {
     }
 
     try {
-        const res  = await fetch(`{{ route('api.history') }}?${params}`);
+        const res  = await fetch(`/api/history?${params}`);
         const data = await res.json();
 
         document.getElementById('history-loading').style.display = 'none';
@@ -301,7 +301,7 @@ async function loadAttendanceHistory() {
     }
 
     try {
-        const res = await fetch(`{{ route('api.history.attendance') }}?${params}`);
+        const res = await fetch(`/api/history/attendance?${params}`);
         const data = await res.json();
         document.getElementById('history-loading').style.display = 'none';
 

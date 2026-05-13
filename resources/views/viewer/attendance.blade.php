@@ -111,7 +111,7 @@ setInterval(() => {
 }, 10000);
 
 setInterval(() => {
-    fetch('{{ route("api.attendance.today") }}')
+    fetch('/api/attendance/today')
         .then(r => r.json())
         .then(data => {
             if (!data.success) return;

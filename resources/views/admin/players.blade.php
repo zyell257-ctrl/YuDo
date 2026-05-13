@@ -176,7 +176,7 @@ async function savePlayer() {
         form.append('foto_profile', await compressImage(selectedPlayerPhoto, 512, 0.68));
     }
 
-    fetch(id ? `{{ url('/admin/pemain') }}/${id}` : '{{ route("admin.players.store") }}', {
+    fetch(id ? `/admin/pemain/${id}` : '/admin/pemain', {
         method: 'POST',
         body: form,
     })
@@ -205,7 +205,7 @@ async function deletePlayer(id, name) {
     });
     if (!ok) return;
 
-    fetch(`{{ url('/admin/pemain') }}/${id}`, {
+    fetch(`/admin/pemain/${id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': csrfToken },
     })

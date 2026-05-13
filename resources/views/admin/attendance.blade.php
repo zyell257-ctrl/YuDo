@@ -127,7 +127,7 @@ function toggleAttendance(playerId, btn) {
     if (dot) dot.style.background = newStatus === 'hadir' ? 'var(--green)' : 'var(--red)';
     updateCounts();
 
-    fetch('{{ route("admin.attendance.update") }}', {
+    fetch('/admin/absensi', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
         body: JSON.stringify({ player_id: playerId, status: newStatus, tanggal: todayDate }),
@@ -141,7 +141,7 @@ function toggleAttendance(playerId, btn) {
 }
 
 function hadirSemua() {
-    fetch('{{ route("admin.attendance.hadirSemua") }}', {
+    fetch('/admin/absensi/hadir-semua', {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' },
     })
