@@ -3,20 +3,31 @@
 @section('title', 'Absensi - Ludo Tracker')
 
 @section('content')
+@php
+    $draftHadirCount = $players->filter(fn($player) => optional($attendances->get($player->id))->status_hadir === 'hadir')->count();
+    $draftTidakCount = $players->count() - $draftHadirCount;
+    $hasSavedAttendance = $attendances->isNotEmpty();
+@endphp
+
 <div class="page-title-bar">
     <div>
         <div class="page-title">Absensi</div>
         <div class="page-subtitle">{{ $hariIni->locale('id')->isoFormat('dddd, D MMMM Y') }}</div>
     </div>
     <div style="display:flex;gap:8px;">
-        <a href="{{ route('admin.players') }}"
-           style="background:rgba(67,97,238,0.15);border:1px solid rgba(67,97,238,0.3);border-radius:10px;padding:8px 12px;color:#7494ff;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;display:flex;align-items:center;gap:6px;text-decoration:none;">
-            <i class="bi bi-people"></i> Pemain
-        </a>
+        <button class="btn-outline-ludo" id="save-attendance-btn" style="width:auto;padding:8px 14px;font-size:12px;" onclick="saveAttendance()">
+            <i class="bi bi-save-fill"></i> Simpan
+        </button>
         <button class="btn-gold-ludo" style="width:auto;padding:8px 14px;font-size:12px;" onclick="hadirSemua()">
             <i class="bi bi-check2-all"></i> Hadir Semua
         </button>
     </div>
+</div>
+
+<div id="attendance-save-state"
+     style="margin:0 14px 12px;padding:10px 12px;border:1px solid {{ $hasSavedAttendance ? 'rgba(16,185,129,0.28)' : 'rgba(244,196,48,0.28)' }};border-radius:10px;background:{{ $hasSavedAttendance ? 'rgba(16,185,129,0.08)' : 'rgba(244,196,48,0.08)' }};color:var(--text-secondary);font-size:12px;font-weight:600;">
+    <i class="bi {{ $hasSavedAttendance ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill' }}"></i>
+    <span id="attendance-save-text">{{ $hasSavedAttendance ? 'Absensi hari ini sudah tersimpan. Ubah status lalu klik Simpan untuk edit.' : 'Absensi hari ini belum tersimpan. Atur status lalu klik Simpan.' }}</span>
 </div>
 
 <div class="date-banner">
@@ -32,13 +43,13 @@
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 16px;">
     <div class="card-ludo" style="text-align:center;padding:14px;">
         <div style="font-size:26px;font-weight:800;color:var(--green);" id="count-hadir">
-            {{ $attendances->where('status_hadir','hadir')->count() }}
+            {{ $draftHadirCount }}
         </div>
         <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px;">HADIR</div>
     </div>
     <div class="card-ludo" style="text-align:center;padding:14px;">
         <div style="font-size:26px;font-weight:800;color:var(--red);" id="count-tidak">
-            {{ $attendances->where('status_hadir','tidak_hadir')->count() }}
+            {{ $draftTidakCount }}
         </div>
         <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px;">TIDAK HADIR</div>
     </div>
@@ -91,7 +102,7 @@
             <div class="empty-state">
                 <img src="/images/logo.png" alt="Salam Sendok" class="empty-state-logo" loading="lazy">
                 <div class="empty-state-title">Belum ada pemain</div>
-                <div class="empty-state-desc">Tambah pemain dengan tombol <strong>Pemain</strong> di atas.</div>
+                <div class="empty-state-desc">Tambah pemain dari menu manajemen pemain.</div>
             </div>
         @endforelse
     </div>
@@ -104,6 +115,7 @@
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const todayDate = document.getElementById('today-date').value;
+let attendanceDirty = false;
 
 setInterval(() => {
     const now = new Date();
@@ -126,40 +138,60 @@ function toggleAttendance(playerId, btn) {
         : '<span class="badge-tidak-hadir"><i class="bi bi-x-circle-fill"></i> Tidak Hadir</span>';
     if (dot) dot.style.background = newStatus === 'hadir' ? 'var(--green)' : 'var(--red)';
     updateCounts();
-
-    fetch('/admin/absensi', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-        body: JSON.stringify({ player_id: playerId, status: newStatus, tanggal: todayDate }),
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.success) showToast(newStatus === 'hadir' ? 'Hadir' : 'Tidak hadir', 'success');
-        else showToast('Gagal menyimpan.', 'error');
-    })
-    .catch(() => showToast('Koneksi bermasalah.', 'error'));
+    markAttendanceDirty();
 }
 
 function hadirSemua() {
-    fetch('/admin/absensi/hadir-semua', {
+    document.querySelectorAll('[id^="player-card-"]').forEach(card => {
+        const pid = card.id.replace('player-card-', '');
+        card.dataset.status = 'hadir';
+        const toggle = document.getElementById(`toggle-${pid}`);
+        const label = document.getElementById(`status-label-${pid}`);
+        const dot = document.getElementById(`status-dot-${pid}`);
+        if (toggle) { toggle.classList.add('hadir'); toggle.classList.remove('tidak-hadir'); }
+        if (label) label.innerHTML = '<span class="badge-hadir"><i class="bi bi-check-circle-fill"></i> Hadir</span>';
+        if (dot) dot.style.background = 'var(--green)';
+    });
+    updateCounts();
+    markAttendanceDirty();
+    showToast('Semua pemain ditandai hadir. Klik Simpan untuk menyimpan.', 'info');
+}
+
+function saveAttendance() {
+    const rows = Array.from(document.querySelectorAll('[id^="player-card-"]')).map(card => ({
+        player_id: Number(card.id.replace('player-card-', '')),
+        status: card.dataset.status === 'hadir' ? 'hadir' : 'tidak_hadir',
+    }));
+
+    if (!rows.length) {
+        showToast('Belum ada pemain untuk disimpan.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('save-attendance-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Menyimpan...';
+
+    fetch('/admin/absensi/simpan', {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        body: JSON.stringify({ tanggal: todayDate, attendances: rows }),
     })
     .then(r => r.json())
-    .then(d => {
-        if (!d.success) return;
-        showToast('Semua pemain hadir!', 'success');
-        document.querySelectorAll('[id^="player-card-"]').forEach(card => {
-            const pid = card.id.replace('player-card-', '');
-            card.dataset.status = 'hadir';
-            const toggle = document.getElementById(`toggle-${pid}`);
-            const label = document.getElementById(`status-label-${pid}`);
-            const dot = document.getElementById(`status-dot-${pid}`);
-            if (toggle) { toggle.classList.add('hadir'); toggle.classList.remove('tidak-hadir'); }
-            if (label) label.innerHTML = '<span class="badge-hadir"><i class="bi bi-check-circle-fill"></i> Hadir</span>';
-            if (dot) dot.style.background = 'var(--green)';
-        });
-        updateCounts();
+    .then(data => {
+        if (!data.success) {
+            showToast(data.message || 'Gagal menyimpan absensi.', 'error');
+            return;
+        }
+
+        attendanceDirty = false;
+        setSaveState('Absensi tersimpan. Kamu masih bisa edit status lalu klik Simpan lagi.', 'saved');
+        showToast(data.message || 'Absensi tersimpan.', 'success');
+    })
+    .catch(() => showToast('Koneksi bermasalah saat menyimpan absensi.', 'error'))
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-save-fill"></i> Simpan';
     });
 }
 
@@ -172,5 +204,28 @@ function updateCounts() {
     document.getElementById('count-hadir').textContent = hadir;
     document.getElementById('count-tidak').textContent = tidak;
 }
+
+function markAttendanceDirty() {
+    attendanceDirty = true;
+    setSaveState('Ada perubahan yang belum disimpan.', 'dirty');
+}
+
+function setSaveState(message, state) {
+    const wrap = document.getElementById('attendance-save-state');
+    const text = document.getElementById('attendance-save-text');
+    const icon = wrap.querySelector('i');
+    text.textContent = message;
+
+    const isSaved = state === 'saved';
+    wrap.style.borderColor = isSaved ? 'rgba(16,185,129,0.28)' : 'rgba(244,196,48,0.28)';
+    wrap.style.background = isSaved ? 'rgba(16,185,129,0.08)' : 'rgba(244,196,48,0.08)';
+    icon.className = `bi ${isSaved ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}`;
+}
+
+window.addEventListener('beforeunload', e => {
+    if (!attendanceDirty) return;
+    e.preventDefault();
+    e.returnValue = '';
+});
 </script>
 @endsection

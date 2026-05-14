@@ -61,6 +61,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/dashboard',                      [AttendanceController::class, 'index'])->name('admin.dashboard');
     Route::put('/absensi',                        [AttendanceController::class, 'update'])->name('admin.attendance.update');
+    Route::post('/absensi/simpan',                [AttendanceController::class, 'saveBatch'])->name('admin.attendance.saveBatch');
     Route::post('/absensi/hadir-semua',           [AttendanceController::class, 'hadirSemua'])->name('admin.attendance.hadirSemua');
     Route::get('/pertandingan',                   [MatchController::class, 'index'])->name('admin.matches');
     Route::post('/pertandingan',                  [MatchController::class, 'store'])->name('admin.matches.store');

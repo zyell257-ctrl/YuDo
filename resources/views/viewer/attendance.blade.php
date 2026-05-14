@@ -3,6 +3,11 @@
 @section('title', 'Absensi - Ludo Tracker')
 
 @section('content')
+@php
+    $displayHadirCount = $players->filter(fn($player) => optional($attendances->get($player->id))->status_hadir === 'hadir')->count();
+    $displayTidakCount = $players->count() - $displayHadirCount;
+@endphp
+
 <div class="page-title-bar">
     <div>
         <div class="page-title">Absensi</div>
@@ -25,13 +30,13 @@
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 16px;">
     <div class="card-ludo" style="text-align:center;padding:14px;">
         <div style="font-size:26px;font-weight:800;color:var(--green);" id="count-hadir">
-            {{ $attendances->where('status_hadir','hadir')->count() }}
+            {{ $displayHadirCount }}
         </div>
         <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px;">HADIR</div>
     </div>
     <div class="card-ludo" style="text-align:center;padding:14px;">
         <div style="font-size:26px;font-weight:800;color:var(--red);" id="count-tidak">
-            {{ $attendances->where('status_hadir','tidak_hadir')->count() }}
+            {{ $displayTidakCount }}
         </div>
         <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px;">TIDAK HADIR</div>
     </div>
