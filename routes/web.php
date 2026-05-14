@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\MatchController;
@@ -9,6 +10,12 @@ use App\Http\Controllers\PlayerController;
 
 // Root redirect
 Route::get('/', fn() => redirect()->route('viewer.attendance'))->name('home');
+
+Route::get('/media/{path}', function (string $path) {
+    abort_unless(Storage::disk('public')->exists($path), 404);
+
+    return Storage::disk('public')->response($path);
+})->where('path', '.*')->name('media.public');
 
 // Viewer pages
 Route::get('/viewer/absensi',      [AttendanceController::class, 'index'])->name('viewer.attendance');
