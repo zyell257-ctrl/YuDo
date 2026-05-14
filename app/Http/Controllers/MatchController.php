@@ -11,6 +11,7 @@ use App\Models\DailyPhoto;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class MatchController extends Controller
 {
@@ -234,7 +235,7 @@ class MatchController extends Controller
         $extension = strtolower($file->extension() ?: $file->guessExtension() ?: 'jpg');
         $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) ? $extension : 'jpg';
         $filename = 'match_' . $match->id . '_' . now('Asia/Jakarta')->format('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $path = $file->storeAs('match-proofs', $filename, 'public');
+        $path = $this->storePublicUpload($file, 'match-proofs', $filename);
 
         if ($match->bukti_foto_pertandingan) {
             Storage::disk('public')->delete($match->bukti_foto_pertandingan);
@@ -257,10 +258,26 @@ class MatchController extends Controller
         $today = Carbon::now('Asia/Jakarta')->toDateString();
         $extension = strtolower($request->file('foto')->extension() ?: 'jpg');
         $filename = $today . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $path  = $request->file('foto')->storeAs('photos', $filename, 'public');
+        $path  = $this->storePublicUpload($request->file('foto'), 'photos', $filename);
 
         DailyPhoto::updateOrCreate(['tanggal' => $today], ['foto' => $path, 'deskripsi' => $request->deskripsi]);
 
         return response()->json(['success' => true, 'message' => 'Foto diupload.', 'url' => Storage::url($path)]);
+    }
+
+    private function storePublicUpload($file, string $directory, string $filename): string
+    {
+        $targetDir = public_path('uploads/' . $directory);
+
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true);
+        }
+
+        $file->move($targetDir, $filename);
+        $path = $directory . '/' . $filename;
+
+        abort_unless(File::exists(public_path('uploads/' . $path)), 500, 'File upload gagal disimpan.');
+
+        return $path;
     }
 }

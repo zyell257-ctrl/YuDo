@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Player;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -143,6 +144,17 @@ class PlayerController extends Controller
         $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) ? $extension : 'jpg';
         $filename = 'player_' . now('Asia/Jakarta')->format('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
 
-        return $file->storeAs('player-profiles', $filename, 'public');
+        $targetDir = public_path('uploads/player-profiles');
+
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true);
+        }
+
+        $file->move($targetDir, $filename);
+        $path = 'player-profiles/' . $filename;
+
+        abort_unless(File::exists(public_path('uploads/' . $path)), 500, 'File upload gagal disimpan.');
+
+        return $path;
     }
 }

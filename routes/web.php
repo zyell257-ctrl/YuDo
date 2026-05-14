@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use App\Models\DailyPhoto;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\MatchController;
@@ -16,6 +18,19 @@ Route::get('/media/{path}', function (string $path) {
 
     return Storage::disk('public')->response($path);
 })->where('path', '.*')->name('media.public');
+
+Route::get('/api/upload-debug', function () {
+    $photo = DailyPhoto::latest('id')->first();
+    $path = $photo?->foto;
+
+    return response()->json([
+        'latest_daily_photo_path' => $path,
+        'latest_daily_photo_url' => $path ? Storage::url($path) : null,
+        'exists_in_public_uploads' => $path ? File::exists(public_path('uploads/' . $path)) : false,
+        'exists_in_storage_public' => $path ? Storage::disk('public')->exists($path) : false,
+        'filesystem_public_url' => config('filesystems.disks.public.url'),
+    ]);
+})->name('api.uploadDebug');
 
 // Viewer pages
 Route::get('/viewer/absensi',      [AttendanceController::class, 'index'])->name('viewer.attendance');
