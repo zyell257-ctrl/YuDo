@@ -8,10 +8,9 @@ use App\Models\MatchScore;
 use App\Models\Player;
 use App\Models\Attendance;
 use App\Models\DailyPhoto;
+use App\Support\UploadStorage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 
 class MatchController extends Controller
 {
@@ -154,7 +153,7 @@ class MatchController extends Controller
     {
         $match = GameMatch::findOrFail($id);
         if ($match->bukti_foto_pertandingan) {
-            Storage::disk('public')->delete($match->bukti_foto_pertandingan);
+            UploadStorage::delete($match->bukti_foto_pertandingan);
         }
         $match->delete();
         return response()->json(['success' => true, 'message' => 'Pertandingan dihapus.']);
@@ -238,7 +237,7 @@ class MatchController extends Controller
         $path = $this->storePublicUpload($file, 'match-proofs', $filename);
 
         if ($match->bukti_foto_pertandingan) {
-            Storage::disk('public')->delete($match->bukti_foto_pertandingan);
+            UploadStorage::delete($match->bukti_foto_pertandingan);
         }
 
         $match->update(['bukti_foto_pertandingan' => $path]);
@@ -246,7 +245,7 @@ class MatchController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Bukti pertandingan berhasil diupload.',
-            'url' => Storage::disk('public')->url($path),
+            'url' => UploadStorage::url($path),
         ]);
     }
 
@@ -262,22 +261,15 @@ class MatchController extends Controller
 
         DailyPhoto::updateOrCreate(['tanggal' => $today], ['foto' => $path, 'deskripsi' => $request->deskripsi]);
 
-        return response()->json(['success' => true, 'message' => 'Foto diupload.', 'url' => Storage::disk('public')->url($path)]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Foto diupload.',
+            'url' => UploadStorage::url($path),
+        ]);
     }
 
     private function storePublicUpload($file, string $directory, string $filename): string
     {
-        $targetDir = public_path('uploads/' . $directory);
-
-        if (!File::isDirectory($targetDir)) {
-            File::makeDirectory($targetDir, 0755, true);
-        }
-
-        $file->move($targetDir, $filename);
-        $path = $directory . '/' . $filename;
-
-        abort_unless(File::exists(public_path('uploads/' . $path)), 500, 'File upload gagal disimpan.');
-
-        return $path;
+        return UploadStorage::store($file, $directory, $filename);
     }
 }

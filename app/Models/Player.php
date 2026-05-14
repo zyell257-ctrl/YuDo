@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\UploadStorage;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-
 class Player extends Model
 {
     protected $table = 'players';
@@ -35,6 +34,6 @@ class Player extends Model
 
     public function getFotoProfileUrlAttribute(): ?string
     {
-        return $this->foto_profile ? Storage::disk('public')->url($this->foto_profile) : null;
+        return UploadStorage::url($this->foto_profile);
     }
 }

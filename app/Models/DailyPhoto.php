@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\UploadStorage;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-
 class DailyPhoto extends Model
 {
     protected $table = 'daily_photos';
@@ -14,6 +13,6 @@ class DailyPhoto extends Model
     // Helper: URL foto
     public function getFotoUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->foto);
+        return UploadStorage::url($this->foto);
     }
 }

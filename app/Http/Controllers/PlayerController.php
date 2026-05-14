@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Player;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
+use App\Support\UploadStorage;
 use Illuminate\Validation\Rule;
 
 class PlayerController extends Controller
@@ -93,7 +92,7 @@ class PlayerController extends Controller
 
         $path = $this->storeProfilePhoto($request);
         if ($path && $player->foto_profile) {
-            Storage::disk('public')->delete($player->foto_profile);
+            UploadStorage::delete($player->foto_profile);
         }
 
         $player->update([
@@ -123,7 +122,7 @@ class PlayerController extends Controller
         $player = Player::findOrFail($id);
         $nama   = $player->nama_pemain;
         if ($player->foto_profile) {
-            Storage::disk('public')->delete($player->foto_profile);
+            UploadStorage::delete($player->foto_profile);
         }
         $player->delete();
 
@@ -144,17 +143,6 @@ class PlayerController extends Controller
         $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) ? $extension : 'jpg';
         $filename = 'player_' . now('Asia/Jakarta')->format('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
 
-        $targetDir = public_path('uploads/player-profiles');
-
-        if (!File::isDirectory($targetDir)) {
-            File::makeDirectory($targetDir, 0755, true);
-        }
-
-        $file->move($targetDir, $filename);
-        $path = 'player-profiles/' . $filename;
-
-        abort_unless(File::exists(public_path('uploads/' . $path)), 500, 'File upload gagal disimpan.');
-
-        return $path;
+        return UploadStorage::store($file, 'player-profiles', $filename);
     }
 }

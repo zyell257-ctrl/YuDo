@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\UploadStorage;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-
 class GameMatch extends Model
 {
     protected $table = 'matches';
@@ -48,7 +47,7 @@ class GameMatch extends Model
 
     public function getBuktiFotoUrlAttribute(): ?string
     {
-        return $this->bukti_foto_pertandingan ? Storage::disk('public')->url($this->bukti_foto_pertandingan) : null;
+        return UploadStorage::url($this->bukti_foto_pertandingan);
     }
 
     // Helper: foto hari itu

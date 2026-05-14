@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use App\Support\UploadStorage;
 use App\Models\DailyPhoto;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
@@ -14,9 +15,13 @@ use App\Http\Controllers\PlayerController;
 Route::get('/', fn() => redirect()->route('viewer.attendance'))->name('home');
 
 Route::get('/media/{path}', function (string $path) {
-    abort_unless(Storage::disk('public')->exists($path), 404);
+    if (UploadStorage::isCloudinaryReference($path)) {
+        return redirect()->away(UploadStorage::url($path));
+    }
 
-    return Storage::disk('public')->response($path);
+    abort_unless(UploadStorage::exists($path), 404);
+
+    return Storage::disk(UploadStorage::disk())->response($path);
 })->where('path', '.*')->name('media.public');
 
 Route::get('/api/upload-debug', function () {
@@ -24,10 +29,11 @@ Route::get('/api/upload-debug', function () {
     $path = $photo?->foto;
 
     return response()->json([
+        'uploads_disk' => config('filesystems.uploads_disk', 'public'),
         'latest_daily_photo_path' => $path,
-        'latest_daily_photo_url' => $path ? Storage::disk('public')->url($path) : null,
+        'latest_daily_photo_url' => UploadStorage::url($path),
         'exists_in_public_uploads' => $path ? File::exists(public_path('uploads/' . $path)) : false,
-        'exists_in_storage_public' => $path ? Storage::disk('public')->exists($path) : false,
+        'exists_in_uploads_disk' => UploadStorage::exists($path),
         'filesystem_public_url' => config('filesystems.disks.public.url'),
     ]);
 })->name('api.uploadDebug');
