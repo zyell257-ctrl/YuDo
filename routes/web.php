@@ -25,7 +25,7 @@ Route::get('/api/upload-debug', function () {
 
     return response()->json([
         'latest_daily_photo_path' => $path,
-        'latest_daily_photo_url' => $path ? Storage::url($path) : null,
+        'latest_daily_photo_url' => $path ? Storage::disk('public')->url($path) : null,
         'exists_in_public_uploads' => $path ? File::exists(public_path('uploads/' . $path)) : false,
         'exists_in_storage_public' => $path ? Storage::disk('public')->exists($path) : false,
         'filesystem_public_url' => config('filesystems.disks.public.url'),

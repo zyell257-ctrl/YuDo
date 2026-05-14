@@ -246,7 +246,7 @@ class MatchController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Bukti pertandingan berhasil diupload.',
-            'url' => Storage::url($path),
+            'url' => Storage::disk('public')->url($path),
         ]);
     }
 
@@ -262,7 +262,7 @@ class MatchController extends Controller
 
         DailyPhoto::updateOrCreate(['tanggal' => $today], ['foto' => $path, 'deskripsi' => $request->deskripsi]);
 
-        return response()->json(['success' => true, 'message' => 'Foto diupload.', 'url' => Storage::url($path)]);
+        return response()->json(['success' => true, 'message' => 'Foto diupload.', 'url' => Storage::disk('public')->url($path)]);
     }
 
     private function storePublicUpload($file, string $directory, string $filename): string

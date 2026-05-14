@@ -15,8 +15,8 @@
 
 {{-- Foto harian + klik untuk fullscreen --}}
 @if($dailyPhoto)
-<div class="photo-header" style="cursor:pointer;" onclick="openFoto('{{ Storage::url($dailyPhoto->foto) }}', '{{ $dailyPhoto->deskripsi ?: 'Foto pertandingan hari ini' }}')">
-    <img src="{{ Storage::url($dailyPhoto->foto) }}" alt="Foto hari ini" loading="lazy">
+<div class="photo-header" style="cursor:pointer;" onclick="openFoto('{{ $dailyPhoto->foto_url }}', '{{ $dailyPhoto->deskripsi ?: 'Foto pertandingan hari ini' }}')">
+    <img src="{{ $dailyPhoto->foto_url }}" alt="Foto hari ini" loading="lazy">
     <div class="photo-header-overlay">
         <div class="photo-header-label">
             📸 {{ $dailyPhoto->deskripsi ?: 'Foto pertandingan hari ini' }}

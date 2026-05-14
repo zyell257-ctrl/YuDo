@@ -86,7 +86,7 @@ class HistoryController extends Controller
                 'waktu_mulai'   => $match->waktu_mulai?->format('H:i'),
                 'waktu_selesai' => $match->waktu_selesai?->format('H:i'),
                 'finished_at'    => $match->finished_at?->format('H:i'),
-                'bukti_foto_url' => $match->bukti_foto_pertandingan ? Storage::url($match->bukti_foto_pertandingan) : null,
+                'bukti_foto_url' => $match->bukti_foto_pertandingan ? Storage::disk('public')->url($match->bukti_foto_pertandingan) : null,
                 'scores'        => $this->sortScoresByManualPosition($match->scores)->map(function ($s) {
                     return [
                         'player_id'    => $s->player_id,

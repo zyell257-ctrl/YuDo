@@ -14,6 +14,6 @@ class DailyPhoto extends Model
     // Helper: URL foto
     public function getFotoUrlAttribute(): string
     {
-        return Storage::url($this->foto);
+        return Storage::disk('public')->url($this->foto);
     }
 }

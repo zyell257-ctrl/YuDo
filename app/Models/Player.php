@@ -35,6 +35,6 @@ class Player extends Model
 
     public function getFotoProfileUrlAttribute(): ?string
     {
-        return $this->foto_profile ? Storage::url($this->foto_profile) : null;
+        return $this->foto_profile ? Storage::disk('public')->url($this->foto_profile) : null;
     }
 }

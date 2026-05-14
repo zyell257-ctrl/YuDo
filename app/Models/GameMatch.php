@@ -48,7 +48,7 @@ class GameMatch extends Model
 
     public function getBuktiFotoUrlAttribute(): ?string
     {
-        return $this->bukti_foto_pertandingan ? Storage::url($this->bukti_foto_pertandingan) : null;
+        return $this->bukti_foto_pertandingan ? Storage::disk('public')->url($this->bukti_foto_pertandingan) : null;
     }
 
     // Helper: foto hari itu

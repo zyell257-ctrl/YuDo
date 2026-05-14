@@ -19,7 +19,7 @@
 {{-- Foto harian (jika ada) --}}
 @if($dailyPhoto)
 <div class="photo-header">
-    <img src="{{ Storage::url($dailyPhoto->foto) }}" alt="Foto hari ini" loading="lazy">
+    <img src="{{ $dailyPhoto->foto_url }}" alt="Foto hari ini" loading="lazy">
     <div class="photo-header-overlay">
         <div class="photo-header-label">
             📸 {{ $dailyPhoto->deskripsi ?: 'Foto pertandingan hari ini' }}
