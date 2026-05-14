@@ -65,7 +65,7 @@ class MatchController extends Controller
 
         foreach ($request->player_ids as $pid) {
             MatchScore::create(['match_id' => $match->id, 'player_id' => $pid,
-                'skor_keinjek' => 0, 'total_skor' => 0, 'posisi' => 'none']);
+                'skor_keinjek' => 0, 'posisi' => 'none']);
         }
 
         return response()->json(['success' => true, 'message' => "Pertandingan #{$nomorMatch} dimulai!", 'match_id' => $match->id]);
@@ -77,12 +77,10 @@ class MatchController extends Controller
         $request->validate([
             'score_id'     => 'required|exists:match_scores,id',
             'skor_keinjek' => 'required|integer|min:0',
-            'total_skor'   => 'required|integer|min:0',
         ]);
 
         MatchScore::findOrFail($request->score_id)->update([
             'skor_keinjek' => $request->skor_keinjek,
-            'total_skor'   => $request->total_skor,
         ]);
 
         return response()->json(['success' => true]);
@@ -183,7 +181,6 @@ class MatchController extends Controller
                     'initials'     => $s->player->initials,
                     'foto_profile_url' => $s->player->foto_profile_url,
                     'skor_keinjek' => $s->skor_keinjek,
-                    'total_skor'   => $s->total_skor,
                     'posisi'       => $s->posisi,
                     'rank'         => $s->rank_number,
                     'position_label' => $s->position_label,
@@ -199,7 +196,7 @@ class MatchController extends Controller
         $hasManualPosition = $scores->contains(fn($score) => $score->posisi !== 'none');
 
         if (!$hasManualPosition) {
-            return $scores->sortByDesc('total_skor')->values();
+            return $scores->sortBy('id')->values();
         }
 
         return $scores->sortBy(fn($score) => $score->rank_number ?? 99)->values();

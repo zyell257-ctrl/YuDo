@@ -191,15 +191,11 @@ function renderHistory(matches) {
             : `<span class="badge-selesai"><i class="bi bi-check-circle-fill"></i> Selesai</span>`;
 
         let scoresHtml = '';
-        const maxSkor = Math.max(...match.scores.map(s => s.total_skor), 1);
-
         match.scores.forEach((s, i) => {
             const rank = s.rank && s.rank < 99 ? s.rank : null;
             const badge = rank
                 ? `<span class="rank-medal rank-${rank}">${s.badge}</span>`
                 : `<span style="font-size:13px;color:var(--text-muted);font-weight:600;">${i+1}</span>`;
-            const barCols = ['var(--gold)', '#c0c0c0', '#cd7f32', 'var(--blue)'];
-            const barW    = Math.round((s.total_skor / maxSkor) * 100);
 
             const avatarHtml = s.foto_profile_url
                 ? `<img class="player-avatar-img sm" src="${s.foto_profile_url}" alt="${s.nama_pemain}" loading="lazy" style="border-color:${s.avatar_color};">`
@@ -213,10 +209,6 @@ function renderHistory(matches) {
                     <div class="score-row-name">${s.nama_pemain}${s.position_label ? `<span class="position-pill">${s.position_label}</span>` : ''}</div>
                     <div class="score-row-sub">
                         <i class="bi bi-footprint"></i> Diinjek: <strong style="color:var(--red);">${s.skor_keinjek}</strong>
-                        &nbsp;|&nbsp; Total: <strong>${s.total_skor}</strong>
-                    </div>
-                    <div class="score-bar-wrap">
-                        <div class="score-bar-fill" style="width:${barW}%;background:${barCols[i]||'var(--blue)'}"></div>
                     </div>
                 </div>
             </div>`;

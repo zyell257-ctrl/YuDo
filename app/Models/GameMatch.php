@@ -29,7 +29,7 @@ class GameMatch extends Model
     // Relasi ke skor
     public function scores()
     {
-        return $this->hasMany(MatchScore::class, 'match_id')->orderByDesc('total_skor');
+        return $this->hasMany(MatchScore::class, 'match_id')->orderBy('id');
     }
 
     // Relasi ke skor + pemain
@@ -37,7 +37,7 @@ class GameMatch extends Model
     {
         return $this->hasMany(MatchScore::class, 'match_id')
                     ->with('player')
-                    ->orderByDesc('total_skor');
+                    ->orderBy('id');
     }
 
     // Helper: apakah sedang berlangsung?

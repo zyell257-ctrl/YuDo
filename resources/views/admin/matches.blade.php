@@ -216,6 +216,7 @@ function submitAddMatch() {
 // ===== UPDATE SKOR =====
 function changeScore(scoreId, field, delta) {
     const display  = document.getElementById(`${field}-${scoreId}`);
+    if (!display || field !== 'keinjek') return;
     let   current  = parseInt(display.textContent) || 0;
     const newVal   = Math.max(0, current + delta);
     display.textContent = newVal;
@@ -224,12 +225,11 @@ function changeScore(scoreId, field, delta) {
     clearTimeout(window[`scoreTimer_${scoreId}_${field}`]);
     window[`scoreTimer_${scoreId}_${field}`] = setTimeout(() => {
         const keinjek = parseInt(document.getElementById(`keinjek-${scoreId}`).textContent) || 0;
-        const total   = parseInt(document.getElementById(`total-${scoreId}`).textContent) || 0;
 
         fetch(`/admin/pertandingan/${scoreId}/skor`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ score_id: scoreId, skor_keinjek: keinjek, total_skor: total }),
+            body: JSON.stringify({ score_id: scoreId, skor_keinjek: keinjek }),
         })
         .then(r => r.json())
         .then(d => { if (!d.success) showToast('Gagal simpan skor.', 'error'); });
@@ -238,12 +238,11 @@ function changeScore(scoreId, field, delta) {
 
 function resetScore(scoreId) {
     document.getElementById(`keinjek-${scoreId}`).textContent = 0;
-    document.getElementById(`total-${scoreId}`).textContent   = 0;
 
     fetch(`/admin/pertandingan/${scoreId}/skor`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-        body: JSON.stringify({ score_id: scoreId, skor_keinjek: 0, total_skor: 0 }),
+        body: JSON.stringify({ score_id: scoreId, skor_keinjek: 0 }),
     });
 }
 

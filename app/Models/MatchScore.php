@@ -12,7 +12,6 @@ class MatchScore extends Model
         'match_id',
         'player_id',
         'skor_keinjek',
-        'total_skor',
         'posisi',
     ];
 

@@ -8,8 +8,7 @@
     $hasManualPosition = $match->scores->contains(fn($score) => $score->posisi !== 'none');
     $scores    = $hasManualPosition
         ? $match->scores->sortBy(fn($score) => $positionOrder[$score->posisi] ?? 99)->values()
-        : $match->scores->sortByDesc('total_skor')->values();
-    $maxSkor   = $scores->max('total_skor') ?: 1;
+        : $match->scores->sortBy('id')->values();
     $hasProof  = filled($match->bukti_foto_pertandingan);
     $detailUrl = $isAdmin ? route('admin.matches.show', $match->id) : route('viewer.matches.show', $match->id);
     $positionOptions = collect([
@@ -82,18 +81,9 @@
         @php
             $player  = $score->player;
             $initials = $player->initials;
-            $barW    = $maxSkor > 0 ? round(($score->total_skor / $maxSkor) * 100) : 0;
             $isWinner = $score->posisi !== 'none';
             $badge   = $score->badge;
             $rankNumber = $positionOrder[$score->posisi] ?? null;
-
-            // Warna bar berdasarkan posisi
-            $barColor = match($score->posisi) {
-                'juara' => 'var(--gold)',
-                'runner_up' => '#c0c0c0',
-                'ketiga' => '#cd7f32',
-                default => 'var(--blue)',
-            };
         @endphp
 
         <div class="score-row {{ $isWinner ? 'winner-row' : '' }}">
@@ -121,12 +111,6 @@
                 </div>
                 <div class="score-row-sub">
                     <i class="bi bi-footprint"></i> Diinjek: <strong id="keinjek-{{ $score->id }}" style="color:var(--red);">{{ $score->skor_keinjek }}</strong>
-                    &nbsp;|&nbsp;
-                    Total: <strong id="total-{{ $score->id }}" style="color:var(--text-primary);">{{ $score->total_skor }}</strong>
-                </div>
-                {{-- Progress bar skor --}}
-                <div class="score-bar-wrap">
-                    <div class="score-bar-fill" style="width:{{ $barW }}%; background:{{ $barColor }};"></div>
                 </div>
             </div>
 
@@ -137,11 +121,6 @@
                 <div class="score-control compact">
                     <button class="score-btn btn-minus score-btn-sm" onclick="changeScore({{ $score->id }}, 'keinjek', -1)" aria-label="Kurangi skor keinjek">−</button>
                     <button class="score-btn btn-plus score-btn-sm" onclick="changeScore({{ $score->id }}, 'keinjek', 1)" aria-label="Tambah skor keinjek">+</button>
-                </div>
-                {{-- Total skor --}}
-                <div class="score-control compact">
-                    <button class="score-btn btn-minus score-btn-sm" onclick="changeScore({{ $score->id }}, 'total', -1)" aria-label="Kurangi total skor">−</button>
-                    <button class="score-btn btn-plus score-btn-sm" onclick="changeScore({{ $score->id }}, 'total', 1)" aria-label="Tambah total skor">+</button>
                 </div>
                 <div class="rank-pick-grid" aria-label="Pilih posisi juara untuk {{ $player->nama_pemain }}">
                     @foreach($positionOptions as $positionValue => $rankNumber)

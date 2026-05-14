@@ -95,7 +95,6 @@ class HistoryController extends Controller
                         'initials'     => $s->player->initials,
                         'foto_profile_url' => $s->player->foto_profile_url,
                         'skor_keinjek' => $s->skor_keinjek,
-                        'total_skor'   => $s->total_skor,
                         'posisi'       => $s->posisi,
                         'rank'         => $s->rank_number,
                         'position_label' => $s->position_label,
@@ -201,7 +200,7 @@ class HistoryController extends Controller
         $hasManualPosition = $scores->contains(fn($score) => $score->posisi !== 'none');
 
         if (!$hasManualPosition) {
-            return $scores->sortByDesc('total_skor')->values();
+            return $scores->sortBy('id')->values();
         }
 
         return $scores->sortBy(fn($score) => $score->rank_number ?? 99)->values();

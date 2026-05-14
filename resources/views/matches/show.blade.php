@@ -9,8 +9,7 @@
     $hasManualPosition = $match->scores->contains(fn($score) => $score->posisi !== 'none');
     $scores = $hasManualPosition
         ? $match->scores->sortBy(fn($score) => $positionOrder[$score->posisi] ?? 99)->values()
-        : $match->scores->sortByDesc('total_skor')->values();
-    $maxSkor = $scores->max('total_skor') ?: 1;
+        : $match->scores->sortBy('id')->values();
 @endphp
 
 <div class="page-title-bar">
@@ -55,13 +54,6 @@
         @forelse($scores as $i => $score)
             @php
                 $player = $score->player;
-                $barW = round(($score->total_skor / $maxSkor) * 100);
-                $barColor = match($i) {
-                    0 => 'var(--gold)',
-                    1 => '#c0c0c0',
-                    2 => '#cd7f32',
-                    default => 'var(--blue)',
-                };
             @endphp
             <div class="score-row">
                 <div style="font-size:18px;width:28px;text-align:center;flex-shrink:0;">
@@ -86,10 +78,6 @@
                     <div class="score-row-sub">
                         <i class="bi bi-footprint"></i> Diinjek:
                         <strong style="color:var(--red);">{{ $score->skor_keinjek }}</strong>
-                        &nbsp;|&nbsp; Total: <strong>{{ $score->total_skor }}</strong>
-                    </div>
-                    <div class="score-bar-wrap">
-                        <div class="score-bar-fill" style="width:{{ $barW }}%;background:{{ $barColor }}"></div>
                     </div>
                 </div>
             </div>
