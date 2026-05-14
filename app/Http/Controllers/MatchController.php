@@ -11,6 +11,7 @@ use App\Models\DailyPhoto;
 use App\Support\UploadStorage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class MatchController extends Controller
 {
@@ -234,10 +235,20 @@ class MatchController extends Controller
         $extension = strtolower($file->extension() ?: $file->guessExtension() ?: 'jpg');
         $extension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) ? $extension : 'jpg';
         $filename = 'match_' . $match->id . '_' . now('Asia/Jakarta')->format('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $path = $this->storePublicUpload($file, 'match-proofs', $filename);
 
-        if ($match->bukti_foto_pertandingan) {
-            UploadStorage::delete($match->bukti_foto_pertandingan);
+        try {
+            $path = $this->storePublicUpload($file, 'match-proofs', $filename);
+
+            if ($match->bukti_foto_pertandingan) {
+                UploadStorage::delete($match->bukti_foto_pertandingan);
+            }
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload ke Cloudinary gagal: ' . $e->getMessage(),
+            ], 500);
         }
 
         $match->update(['bukti_foto_pertandingan' => $path]);
@@ -257,7 +268,17 @@ class MatchController extends Controller
         $today = Carbon::now('Asia/Jakarta')->toDateString();
         $extension = strtolower($request->file('foto')->extension() ?: 'jpg');
         $filename = $today . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $path  = $this->storePublicUpload($request->file('foto'), 'photos', $filename);
+
+        try {
+            $path  = $this->storePublicUpload($request->file('foto'), 'photos', $filename);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload ke Cloudinary gagal: ' . $e->getMessage(),
+            ], 500);
+        }
 
         DailyPhoto::updateOrCreate(['tanggal' => $today], ['foto' => $path, 'deskripsi' => $request->deskripsi]);
 

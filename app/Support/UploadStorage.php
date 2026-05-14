@@ -5,6 +5,7 @@ namespace App\Support;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class UploadStorage
 {
@@ -102,6 +103,10 @@ class UploadStorage
 
         if ($url) {
             return new Cloudinary($url);
+        }
+
+        if (!config('services.cloudinary.cloud_name') || !config('services.cloudinary.api_key') || !config('services.cloudinary.api_secret')) {
+            throw new RuntimeException('Konfigurasi Cloudinary belum lengkap. Isi CLOUDINARY_URL di Railway Variables.');
         }
 
         return new Cloudinary([

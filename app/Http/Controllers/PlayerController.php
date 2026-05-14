@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Player;
 use App\Support\UploadStorage;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class PlayerController extends Controller
 {
@@ -51,7 +52,16 @@ class PlayerController extends Controller
         $colors = ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#f97316'];
         $color  = $request->avatar_color ?? $colors[array_rand($colors)];
 
-        $path = $this->storeProfilePhoto($request);
+        try {
+            $path = $this->storeProfilePhoto($request);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload ke Cloudinary gagal: ' . $e->getMessage(),
+            ], 500);
+        }
 
         $player = Player::create([
             'nama_pemain'  => trim($request->nama_pemain),
@@ -90,9 +100,18 @@ class PlayerController extends Controller
             'foto_profile' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        $path = $this->storeProfilePhoto($request);
-        if ($path && $player->foto_profile) {
-            UploadStorage::delete($player->foto_profile);
+        try {
+            $path = $this->storeProfilePhoto($request);
+            if ($path && $player->foto_profile) {
+                UploadStorage::delete($player->foto_profile);
+            }
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload ke Cloudinary gagal: ' . $e->getMessage(),
+            ], 500);
         }
 
         $player->update([
